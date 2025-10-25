@@ -428,6 +428,8 @@ This program represents continued development in my programming journey:
 
 ## License
 
+This project is licensed under the Apache License 2.0 - see the [LICENSE.md](LICENSE.md) file for details.
+
 This reconstruction is provided for educational and historical purposes. The original program was created by Rafał Stańczuk in 2003.
 
 ---

@@ -8,13 +8,70 @@ This is an early programming project from 2003, representing my exploration of *
 
 Strzalki (Arrows) is an **interactive physics simulation program** originally written in Borland Pascal by Rafał Stańczuk in 2003. The program implements real-time projectile motion calculations with interactive parameter controls using the Borland Graphics Interface (BGI) with Polish language interface.
 
+### **Important Note: Modern Interpretation**
+
+**Strzalki.pas** is a **modern interpretation and reconstruction** of the original 2003 DOS program, adapted for contemporary systems using Free Pascal with `ptcgraph` and `ptcmouse` modules. While maintaining the core physics simulation functionality and visual aesthetics of the original, this version:
+
+- Uses Free Pascal's `ptcgraph` (PTC graphics backend) instead of Borland's BGI
+- Implements mouse controls via `ptcmouse` for enhanced interactivity
+- Adapts the interface for modern Linux systems while preserving the authentic DOS-era visual style
+- Interprets the original program's behavior based on visual analysis of screenshots and executable inspection
+
+The modern version strives for functional and visual fidelity to the 2003 original while leveraging contemporary graphics libraries for broader compatibility.
+
+### **UI/UX Description (Based on Original Screenshots)**
+
+The program features a **clean, minimalist interface** designed for educational physics simulation:
+
+#### **Visual Layout** (see `strzalki_000.png`, `strzalki_001.png`)
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Rafal Stanczuk rafalsrs@wp.pl  (a/z)(+/-) 10 stopni  V0...│ ← Brown status bar
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│                                                              │
+│                    Clean Blue Background                     │
+│                                                              │
+│         • Red trajectory lines (during flight)               │
+│         • White projectile dots (animated)                   │
+│         • White impact marks (persistent)                    │
+│                                                              │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│ Kąt: 45° | Prędkość: 30 m/s | [ESC] - wyjście            │ ← Brown bottom bar
+└──────────────────────────────────────────────────────────────┘
+```
+
+#### **Color Palette** (16-color VGA)
+- **Background:** Deep blue (RGB: 0, 0, 128) - main simulation area
+- **Status Bars:** Brown (#6 in DOS palette) - top and bottom
+- **Text:** White - all status and parameter displays
+- **Trajectory:** Red - projectile path visualization
+- **Projectile:** White - moving dot during flight
+- **Impact Marks:** White - persistent dots showing landing points
+- **Launch Point:** Green circle - starting position
+- **Impact Point:** Yellow circle - trajectory endpoint
+
+#### **Interactive Elements**
+1. **Mouse Cursor:** Visible white arrow for positioning
+2. **Launch Point Selection:** Click anywhere in blue area to set starting position
+3. **Real-time Feedback:** Trajectory updates instantly with parameter changes
+4. **Persistent History:** White dots remain on screen showing all impact points
+
+#### **Visual Feedback**
+- **During Setup:** Red trajectory line shows predicted path
+- **During Flight:** White dot animates along the trajectory
+- **After Impact:** White mark persists showing where projectile landed
+- **Status Display:** Bottom bar shows current angle, velocity, and animation state
+
 ### **Technical Implementation**
 - **Physics Engine:** Real-time projectile motion calculations
-- **Graphics Engine:** Borland Graphics Interface (BGI) with EGAVGA.BGI driver
-- **Input System:** Keyboard controls for parameter adjustment
-- **Simulation:** Interactive angle and velocity controls
+- **Graphics Engine:** Borland Graphics Interface (BGI) with EGAVGA.BGI driver (original) / ptcgraph (modern)
+- **Input System:** Keyboard controls for parameters, mouse for launch position (modern)
+- **Simulation:** Interactive angle and velocity controls with visual trajectory
 - **Language:** Complete Polish language interface
-- **Resolution:** 640x480 VGA graphics mode with automatic detection
+- **Resolution:** 640x480 VGA graphics mode (16 colors)
 
 ## 🚀 **Quick Start - Physics Simulation Features**
 

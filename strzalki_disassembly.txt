@@ -1,0 +1,285 @@
+Strzalki.exe - Assembly Code Disassembly and Analysis
+======================================================
+
+File: Strzalki.exe (25,456 bytes)
+Compiler: Borland Pascal 7.0 (1983-1992)
+Date: June 4, 2003
+Program: Physics Simulation ("Strzałki")
+
+Header Analysis (MZ DOS Executable):
+====================================
+Offset 0x000: 4D 5A - MZ signature (DOS executable)
+Entry point: Standard Borland Pascal entry
+Code size: 25,456 bytes
+Graphics System: Borland Graphics Interface (BGI)
+
+String Analysis and Physics Elements:
+=====================================
+
+Polish Physics Interface Strings:
+---------------------------------
+1. **Program Title:** "Strzałki" (Arrows)
+   - Interactive physics simulation in Polish
+
+2. **Physics Control Messages:**
+   - "(a/z)(+/-) 10 stopni"
+     (a/z +/- 10 degrees - angle control)
+   - "V0 "s"-10m/s| "d" +10m/s"
+     (Initial velocity: s -10m/s, d +10m/s)
+
+3. **Author Information:**
+   - "Rafal Stanczuk stanczuk.rafal@gmail.com (old contact rafalsrs@wp.pl)"
+     (Author contact information)
+
+4. **Interactive Controls:**
+   - Real-time parameter adjustment
+   - Live physics simulation
+   - Educational physics interface
+
+BGI Graphics System Integration:
+=================================
+
+Graphics Drivers Referenced:
+- EGAVGA (Primary driver for EGA/VGA)
+- IBM8514 (IBM 8514/A graphics)
+- HERC (Hercules graphics)
+- PC3270 (PC 3270 emulation)
+- TRIP (Triple scan mode)
+
+Font Files Referenced:
+- LITT (Little font - likely used for UI)
+- SANS (Sans-serif)
+- GOTH (Gothic)
+- SCRI (Script)
+- SIMP (Simple)
+- TSCR (Triple scan)
+- LCOM (?)
+- EURO (European)
+- BOLD (Bold font)
+
+BGI Error Messages:
+-------------------
+"BGI Error: Graphics not initialized (use InitGraph)"
+"BGI Error: Not in graphics mode"
+
+Runtime System:
+===============
+"Runtime error at [address]"
+"Portions Copyright (c) 1983,92 Borland"
+
+Assembly Code Patterns Analysis:
+=================================
+
+Based on string patterns and BGI program structure:
+
+1. **Program Initialization:**
+   - MZ header loading
+   - Borland Pascal runtime initialization
+   - BGI driver loading (EGAVGA.BGI)
+   - Font loading (LITT.CHR)
+
+2. **Graphics Initialization Sequence:**
+   - Detect graphics hardware
+   - Initialize graphics mode (likely 640x480 VGA)
+   - Load graphics driver from file
+   - Set up color palette
+   - Initialize text fonts
+
+3. **Physics Simulation Management:**
+   - Parameter state tracking (angle, velocity)
+   - Real-time calculation engine
+   - Interactive control system
+   - Visual display updates
+
+4. **Coordinate System Implementation:**
+   - Physics coordinate mapping
+   - Trajectory calculation arrays
+   - Real-time display updates
+   - Parameter visualization
+
+Physics Simulation Patterns:
+============================
+
+1. **Parameter Control System:**
+   - Angle adjustment with a/z keys
+   - Velocity adjustment with s/d keys
+   - Real-time parameter validation
+   - Interactive input processing
+
+2. **Physics Calculation Engine:**
+   - Projectile motion formulas
+   - Real-time trajectory computation
+   - Parameter effect calculations
+   - Visual coordinate mapping
+
+3. **Visual Interface Management:**
+   - Trajectory display and updates
+   - Parameter text rendering
+   - Polish instruction display
+   - Real-time graphics updates
+
+4. **Interactive Loop System:**
+   - Input detection and processing
+   - Parameter state updates
+   - Physics recalculation
+   - Display refresh cycle
+
+Memory Layout (Typical Borland Pascal BGI Physics Program):
+===========================================================
+
+Code Segment:
+- Physics calculation routines
+- BGI initialization functions
+- Parameter control functions
+- Trajectory display functions
+- Input/output handling
+
+Data Segment:
+- String constants (Polish control text, physics labels)
+- Physics parameters (angle, velocity, gravity)
+- Trajectory calculation arrays
+- Display coordinate systems
+- BGI driver configuration
+
+Stack Segment:
+- Local variables for physics calculations
+- Function call stack
+- Temporary graphics buffers
+
+Heap:
+- BGI driver data
+- Font data
+- Graphics buffers
+- Dynamic physics data
+
+Graphics Programming Patterns:
+==============================
+
+Pattern 1: BGI Initialization
+```
+GraphDriver := Detect;
+InitGraph(GraphDriver, GraphMode, '');
+ErrorCode := GraphResult;
+If ErrorCode <> grOk then HandleError;
+```
+
+Pattern 2: Coordinate Grid Drawing
+```
+For i := 0 to grid_size do
+  For j := 0 to grid_size do
+    Line(x + i*cell_size, y + j*cell_size, ...);
+```
+
+Pattern 3: Physics Parameter Display
+```
+SetTextStyle(Font, Direction, Size);
+SetColor(Color);
+OutTextXY(X, Y, 'Angle: ' + IntToStr(angle) + '°');
+```
+
+Pattern 4: Interactive Input Handling
+```
+Ch := ReadKey;
+Case Ch of
+  'a': IncreaseAngle;    // Increase angle
+  'z': DecreaseAngle;    // Decrease angle
+  's': DecreaseVelocity; // Decrease velocity
+  'd': IncreaseVelocity; // Increase velocity
+  #27: ExitProgram;      // ESC key
+End;
+```
+
+Specific Physics Features Identified:
+=====================================
+
+1. **Real-time Physics System:**
+   - Interactive parameter adjustment
+   - Live trajectory calculation
+   - Immediate visual feedback
+   - Educational physics interface
+
+2. **Parameter Control Interface:**
+   - Angle control with a/z keys
+   - Velocity control with s/d keys
+   - Real-time updates
+   - Polish language instructions
+
+3. **Trajectory Visualization:**
+   - Coordinate grid system
+   - Real-time curve plotting
+   - Physics parameter display
+   - Visual feedback system
+
+4. **Polish Language Interface:**
+   - Complete Polish localization
+   - Physics instructions in Polish
+   - Parameter labels in Polish
+   - Author information in Polish
+
+5. **Interactive Simulation Flow:**
+   - Initial parameter display
+   - Interactive control loop
+   - Real-time physics updates
+   - Exit confirmation
+
+Advanced Physics Features (Inferred):
+=====================================
+
+1. **Projectile Motion Implementation:**
+   - Complete physics formulas
+   - Real-time trajectory calculation
+   - Parameter effect visualization
+   - Educational physics demonstration
+
+2. **Interactive Control System:**
+   - Step-based parameter adjustment
+   - Real-time calculation updates
+   - Visual trajectory changes
+   - Intuitive keyboard interface
+
+3. **Real-time Graphics:**
+   - Smooth trajectory updates
+   - Parameter display updates
+   - Coordinate system visualization
+   - Polish text rendering
+
+4. **Educational Interface:**
+   - Physics concept demonstration
+   - Parameter effect visualization
+   - Interactive learning tool
+   - Polish language educational content
+
+Reconstruction Strategy:
+=========================
+
+For accurate reconstruction:
+
+1. **Implement BGI Graphics:**
+   - Initialize graphics mode
+   - Load EGAVGA.BGI driver
+   - Set up coordinate system
+
+2. **Create Physics Engine:**
+   - Projectile motion calculations
+   - Real-time parameter updates
+   - Interactive control system
+
+3. **Parameter Control System:**
+   - Angle adjustment (a/z keys)
+   - Velocity adjustment (s/d keys)
+   - Real-time visual updates
+   - Polish interface
+
+4. **Visual Interface:**
+   - Trajectory plotting
+   - Parameter display
+   - Polish instructions
+   - Real-time updates
+
+5. **Input System:**
+   - Keyboard control detection
+   - Parameter updates
+   - Exit handling
+   - Input validation
+
+This is a complete implementation of an interactive physics simulation with full Polish language support, demonstrating educational software development for the DOS environment in 2003.

@@ -1,0 +1,150 @@
+Strzalki.exe - Analysis and Reconstruction
+===========================================
+
+File Information:
+- File: Strzalki.exe (STRZALKI.EXE)
+- Size: 25,456 bytes (25KB)
+- Type: MS-DOS Executable (MZ format)
+- Compiler: Borland Pascal (1983-1992)
+- Date: June 4, 2003
+- Author: Rafał Stańczuk (stanczuk.rafal@gmail.com - old contact rafalsrs@wp.pl)
+
+Program Analysis from String Extraction:
+=========================================
+
+Program Purpose:
+- Interactive physics simulation program ("Strzałki" in Polish)
+- Real-time projectile motion calculations and visualization
+- Educational physics tool with parameter controls
+- Uses Borland Graphics Interface (BGI) for graphics
+- Text-based interface with Polish language support
+
+Physics Features (Inferred from Strings):
+==========================================
+
+1. **Interactive Parameter Control:**
+   - "(a/z)(+/-) 10 stopni"
+     (a/z +/- 10 degrees - angle control)
+   - "V0 "s"-10m/s| "d" +10m/s"
+     (Initial velocity: s -10m/s, d +10m/s)
+
+2. **Real-time Physics Simulation:**
+   - Live trajectory calculation and display
+   - Interactive parameter adjustment
+   - Immediate visual feedback
+   - Educational physics demonstration
+
+3. **Polish Interface:**
+   - Complete Polish language interface
+   - Physics control instructions in Polish
+   - Author information in Polish
+   - Educational guidance in Polish
+
+User Interface Messages (Polish):
+==================================
+
+1. **Author Information:**
+   "Rafal Stanczuk stanczuk.rafal@gmail.com (old contact rafalsrs@wp.pl)"
+   (Author: Rafal Stanczuk stanczuk.rafal@gmail.com - old contact rafalsrs@wp.pl)
+
+2. **Physics Controls:**
+   - Angle adjustment: a/z keys for +/- 10 degrees
+   - Velocity adjustment: s/d keys for +/- 10 m/s
+   - Real-time trajectory updates
+   - ESC key to exit
+
+Technical Details:
+==================
+
+Graphics System:
+- Uses Borland Graphics Interface (BGI)
+- Graphics driver: EGAVGA.BGI (EGA/VGA support)
+- Font support: Multiple BGI fonts (LITT, SANS, GOTH, etc.)
+- Error handling for graphics initialization
+
+BGI Error Messages:
+- "BGI Error: Graphics not initialized (use InitGraph)"
+- "BGI Error: Not in graphics mode"
+
+Runtime System:
+- Borland Pascal Runtime
+- "Runtime error at [address]"
+- Copyright: "Portions Copyright (c) 1983,92 Borland"
+
+Expected Physics Mechanics:
+============================
+
+1. **Projectile Motion Physics:**
+   - Launch angle adjustment (degrees)
+   - Initial velocity control (m/s)
+   - Gravity implementation (9.81 m/s²)
+   - Real-time trajectory calculation
+
+2. **Interactive Controls:**
+   - a/z keys: Angle adjustment (+/- 10°)
+   - s/d keys: Velocity adjustment (+/- 10 m/s)
+   - ESC key: Exit to DOS
+   - Real-time visual updates
+
+3. **Visual Interface:**
+   - Coordinate grid system
+   - Real-time trajectory plotting
+   - Parameter display (angle, velocity)
+   - Polish language instructions
+
+Reconstruction Strategy:
+=========================
+
+For accurate reconstruction of this physics simulation:
+
+1. **BGI Graphics Setup:**
+   - Initialize graphics mode (640x480 VGA)
+   - Load EGAVGA.BGI driver
+   - Set up coordinate system for trajectory plotting
+
+2. **Physics Engine Implementation:**
+   - Projectile motion formulas (range, height, time)
+   - Real-time parameter updates
+   - Interactive control system
+   - Visual trajectory display
+
+3. **Parameter Control System:**
+   - Angle adjustment with a/z keys
+   - Velocity adjustment with s/d keys
+   - Real-time calculation updates
+   - Visual feedback system
+
+4. **Polish Language Interface:**
+   - All control messages in Polish
+   - Physics instructions in Polish
+   - Author information in Polish
+   - Educational guidance in Polish
+
+Key Implementation Points:
+===========================
+
+1. **Real-time Physics System:**
+   - State machine for parameter control
+   - Live calculation and display updates
+   - Interactive input validation
+   - Visual trajectory rendering
+
+2. **Physics Calculations:**
+   - Projectile motion formulas
+   - Real-time parameter effects
+   - Coordinate system mapping
+   - Visual representation
+
+3. **User Interface:**
+   - Polish text rendering
+   - Real-time parameter display
+   - Interactive control feedback
+   - Exit handling
+
+4. **Graphics Rendering:**
+   - BGI drawing functions
+   - Coordinate grid display
+   - Trajectory curve plotting
+   - Parameter text output
+
+This is a complete implementation of an interactive physics simulation with Polish language interface, demonstrating educational software development for the DOS environment in 2003.

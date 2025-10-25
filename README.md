@@ -199,6 +199,46 @@ strzalki/strzalki/
 └── strzalki_001.png         # 📸 Original program screenshot
 ```
 
+## Modern Free Pascal Compilation (Linux)
+
+The program has been updated to work with modern Free Pascal compiler:
+
+```bash
+cd strzalki
+fpc Strzalki.pas
+./Strzalki
+```
+
+### Features:
+- Uses PTC graphics backend for modern Linux compatibility
+- 16-color VGA mode (640x480) as in the original
+- Maintains exact visual interface from the original DOS program
+- Interactive physics simulation with real-time trajectory updates
+
+### Controls:
+- `a`/`z` - Set launch angle (±10°)
+- `s`/`d` - Set initial velocity (±10 m/s)
+- **Mouse Movement** - Set launch position
+- **Left Mouse Click** - Launch projectile from mouse position
+- `ESC` - Exit program
+
+### Features:
+- **Interactive Mouse Controls**: Set launch position with mouse movement
+- **Keyboard Parameter Control**: Use a/z/s/d keys to set angle and velocity
+- **Real-time Physics Animation**: Watch the projectile fly along its calculated trajectory
+- **16-color VGA Graphics**: Authentic DOS-style 640x480 display
+- **Launch on Click**: Left mouse button launches animated projectile
+- **Visual Feedback**: Real-time parameter display and trajectory updates
+
+### How It Works:
+1. **Set Parameters**: Use `a/z` keys for launch angle, `s/d` keys for velocity
+2. **Position Mouse**: Move mouse to desired launch position
+3. **Launch**: Left-click to fire projectile - watch it fly in real-time!
+4. **Observe**: See the white projectile dot move along the red trajectory path
+5. **Repeat**: Wait for animation to finish, then adjust and launch again
+
+## Original DOS Compilation
+
 ## Compilation
 
 ### **Prerequisites**

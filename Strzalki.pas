@@ -20,7 +20,7 @@ program Strzalki;
   Visual Accuracy: 100% interface match with original DOS program
 ============================================================}
 
-uses Graph, Crt;
+uses ptcgraph, ptcmouse, Crt, SysUtils;
 
 const
   GRAVITY = 9.81;           { Standard gravity m/s² }
@@ -33,17 +33,17 @@ const
 
   { Visual Interface Constants - Matching Screenshots }
   STATUS_BAR_HEIGHT = 20;   { Height of brown status bar }
-  STATUS_BAR_COLOR = Brown; { Brown background for status bar }
-  MAIN_BG_COLOR = Blue;     { Blue background for main area }
-  TEXT_COLOR = White;       { White text color }
-  GRID_COLOR = LightGray;   { Light gray for coordinate grid }
+  STATUS_BAR_COLOR = Brown; { Brown background for status bar (color 6) }
+  MAIN_BG_COLOR = Blue;     { Blue background for main area (color 1) }
+  TEXT_COLOR = White;       { White text color (color 15) }
+  GRID_COLOR = LightGray;   { Light gray for coordinate grid (color 7) }
 
   { Coordinate System - Based on Visual Analysis }
-  TRAJECTORY_X_OFFSET = 50; { Left margin for trajectory area }
-  TRAJECTORY_Y_OFFSET = 450; { Bottom of trajectory (ground level) }
-  TRAJECTORY_WIDTH = 500;   { Width of trajectory display area }
-  TRAJECTORY_HEIGHT = 300;  { Height of trajectory display area }
-  SCALE_FACTOR = 2;         { Scale for trajectory visualization }
+  TRAJECTORY_X_OFFSET = 10;  { Left margin for trajectory area }
+  TRAJECTORY_Y_OFFSET = 470; { Bottom of trajectory (ground level) }
+  TRAJECTORY_WIDTH = 620;    { Width of trajectory display area - nearly full screen }
+  TRAJECTORY_HEIGHT = 370;   { Height of trajectory display area }
+  SCALE_FACTOR = 1;          { Scale for trajectory visualization - 1:1 mapping for proper boundaries }
 
 type
   TPhysicsParams = record
@@ -59,6 +59,19 @@ var
     x, y: real;
   end;
   trajectoryPoints: integer;
+  mouseX, mouseY: LongInt;
+  
+  { Animation variables }
+  isAnimating: boolean;
+  animationTime: real;
+  launchX, launchY: integer;
+  
+  { Impact marks - persistent white dots showing where projectiles landed }
+  impactMarks: array[0..99] of record
+    x, y: integer;
+    active: boolean;
+  end;
+  impactMarkCount: integer;
 
 {============================================================
   Visual Interface - Matching Original Screenshots
@@ -66,28 +79,58 @@ var
 
 procedure InitGraphics;
 var ErrorCode: integer;
+    GraphDriver, GraphMode: smallint;
 begin
-  { Initialize BGI graphics system - matching original DOS program }
-  GraphDriver := Detect;
+  { Initialize BGI graphics system - explicitly use 16-color VGA mode }
+  GraphDriver := VGA;  { VGA driver }
+  GraphMode := VGAHi;  { 640x480x16 mode for proper 16-color display }
   InitGraph(GraphDriver, GraphMode, '');
 
   ErrorCode := GraphResult;
   if ErrorCode <> grOk then
   begin
     writeln('BGI Graphics Error: ', ErrorCode);
-    writeln('This program requires BGI graphics support.');
-    writeln('For DOS compatibility, run in DOSBox or with BGI drivers.');
+    writeln('Driver: ', GraphDriver, ' Mode: ', GraphMode);
+    writeln('This program requires VGA graphics support.');
     halt(1);
   end;
+
+  { Initialize mouse support }
+  if InitMouse then
+  begin
+    ShowMouse;
+    writeln('Mouse initialized successfully');
+  end
+  else
+  begin
+    writeln('Mouse initialization failed');
+  end;
+
+  { Give the graphics window time to initialize and get focus }
+  writeln('Graphics window initializing...');
+  Delay(1000);
 
   { Set up visual interface matching screenshots }
   SetBkColor(MAIN_BG_COLOR);  { Blue background like original }
   ClearDevice;
+
+  { Add instructions in the graphics window }
+  SetColor(Yellow);
+  OutTextXY(100, 100, 'Strzalki Physics Simulation');
+  SetColor(White);
+  OutTextXY(100, 120, 'Controls:');
+  OutTextXY(100, 135, 'a/z - Set launch angle');
+  OutTextXY(100, 150, 's/d - Set initial velocity');
+  OutTextXY(100, 165, 'Move mouse - Set launch position');
+  OutTextXY(100, 180, 'Left click - Launch projectile');
+  OutTextXY(100, 195, 'ESC - Exit');
+
+  writeln('Graphics ready. Use mouse and keyboard for interaction.');
 end;
 
 procedure DrawStatusBar;
 begin
-  { Draw brown status bar - matching screenshot exactly }
+  { Top status bar - brown background }
   SetFillStyle(SolidFill, STATUS_BAR_COLOR);
   Bar(0, 0, GetMaxX, STATUS_BAR_HEIGHT);
 
@@ -101,94 +144,193 @@ begin
   OutTextXY(400, 15, 'V0 "s"-10m/s| "d" +10m/s');
 end;
 
-procedure DrawCoordinateGrid;
-var i: integer;
+procedure DrawBottomBar;
 begin
-  SetColor(GRID_COLOR);
+  { Bottom status bar - brown background for parameters display }
+  SetFillStyle(SolidFill, STATUS_BAR_COLOR);
+  Bar(0, GetMaxY - 20, GetMaxX, GetMaxY);
 
-  { Draw vertical grid lines for trajectory area }
-  for i := TRAJECTORY_X_OFFSET div 50 to (TRAJECTORY_X_OFFSET + TRAJECTORY_WIDTH) div 50 do
-  begin
-    Line(i * 50, TRAJECTORY_Y_OFFSET - TRAJECTORY_HEIGHT,
-         i * 50, TRAJECTORY_Y_OFFSET);
-  end;
-
-  { Draw horizontal grid lines for trajectory area }
-  for i := (TRAJECTORY_Y_OFFSET - TRAJECTORY_HEIGHT) div 50 to TRAJECTORY_Y_OFFSET div 50 do
-  begin
-    Line(TRAJECTORY_X_OFFSET, i * 50,
-         TRAJECTORY_X_OFFSET + TRAJECTORY_WIDTH, i * 50);
-  end;
-
-  { Draw ground line }
+  { Display current parameters }
   SetColor(TEXT_COLOR);
-  Line(TRAJECTORY_X_OFFSET, TRAJECTORY_Y_OFFSET,
-       TRAJECTORY_X_OFFSET + TRAJECTORY_WIDTH, TRAJECTORY_Y_OFFSET);
-
-  { Draw scale markers }
   SetTextStyle(DefaultFont, HorizDir, 1);
-  for i := 1 to 10 do
+  OutTextXY(10, GetMaxY - 15, 'Kąt wystrzału: ' + IntToStr(params.angle) + '°');
+  OutTextXY(200, GetMaxY - 15, 'Prędkość początkowa: ' + IntToStr(params.velocity) + ' m/s');
+  
+  if isAnimating then
   begin
-    if i * 50 <= TRAJECTORY_WIDTH then
-    begin
-      Line(TRAJECTORY_X_OFFSET + (i * 50), TRAJECTORY_Y_OFFSET - 5,
-           TRAJECTORY_X_OFFSET + (i * 50), TRAJECTORY_Y_OFFSET + 5);
-      OutTextXY(TRAJECTORY_X_OFFSET + (i * 50) - 10, TRAJECTORY_Y_OFFSET + 10,
-                IntToStr(i * 50));
-    end;
+    OutTextXY(450, GetMaxY - 15, 'ANIMACJA - Czas: ' + FloatToStrF(animationTime, ffFixed, 4, 2) + ' s');
+  end
+  else
+  begin
+    OutTextXY(450, GetMaxY - 15, '[ESC] - wyjście');
   end;
+end;
+
+procedure DrawCoordinateGrid;
+begin
+  { Clean interface - no visible grid lines, just trajectory visualization }
+  { Grid boundaries exist but are invisible, matching original clean design }
 end;
 
 procedure DisplayParameters;
 begin
-  { Draw parameter display in the main area - below status bar }
-  SetColor(TEXT_COLOR);
-  SetTextStyle(DefaultFont, HorizDir, 1);
-
-  { Current parameters }
-  OutTextXY(50, 50, 'Kąt wystrzału: ' + IntToStr(params.angle) + '°');
-  OutTextXY(50, 65, 'Prędkość początkowa: ' + IntToStr(params.velocity) + ' m/s');
-
-  { Results }
-  OutTextXY(50, 85, 'Zasięg maksymalny: ' + FloatToStrF(params.range, ffFixed, 6, 1) + ' m');
-  OutTextXY(50, 100, 'Wysokość maksymalna: ' + FloatToStrF(params.maxHeight, ffFixed, 6, 1) + ' m');
-
-  { Instructions }
-  OutTextXY(50, 120, '[ESC] - wyjscie');
-  OutTextXY(50, 135, 'Użyj klawiszy a/z/s/d do zmiany parametrów');
+  { Minimal display - no cluttering text, only essential info shown during interaction }
+  { Parameters shown in status bar and during interaction only }
 end;
 
-procedure DrawTrajectory;
+procedure AddImpactMark(x, y: integer);
+begin
+  { Add a new impact mark at the given position }
+  if impactMarkCount < 100 then
+  begin
+    impactMarks[impactMarkCount].x := x;
+    impactMarks[impactMarkCount].y := y;
+    impactMarks[impactMarkCount].active := true;
+    Inc(impactMarkCount);
+    writeln('Impact mark added at (', x, ',', y, ') - Total marks: ', impactMarkCount);
+  end;
+end;
+
+procedure DrawImpactMarks;
+var i: integer;
+begin
+  { Draw all active impact marks as white dots }
+  SetColor(White);
+  for i := 0 to impactMarkCount - 1 do
+  begin
+    if impactMarks[i].active then
+    begin
+      { Draw a small white circle for each impact point }
+      Circle(impactMarks[i].x, impactMarks[i].y, 2);
+      PutPixel(impactMarks[i].x, impactMarks[i].y, White);
+    end;
+  end;
+end;
+
+procedure DrawTrajectory(mouseX, mouseY: integer);
 var i: integer;
 begin
   { Handle special cases }
   if (trajectoryPoints < 2) or (params.angle = 0) then
   begin
-    { Draw starting point only }
-    SetColor(Green);
-    Circle(TRAJECTORY_X_OFFSET, TRAJECTORY_Y_OFFSET, 6);
+    { Draw starting point only - use mouse position as launch point }
+    SetColor(Green);  { Green launch point (color 2) }
+    Circle(mouseX, mouseY, 6);
     exit;
   end;
 
-  { Draw trajectory line }
-  SetColor(Red);
+  { Draw trajectory line - use mouse position as starting point }
+  SetColor(Red);  { Red trajectory line (color 4) }
   for i := 0 to trajectoryPoints - 2 do
   begin
-    Line(Round(TRAJECTORY_X_OFFSET + trajectory[i].x / SCALE_FACTOR),
-         Round(TRAJECTORY_Y_OFFSET - trajectory[i].y / SCALE_FACTOR),
-         Round(TRAJECTORY_X_OFFSET + trajectory[i+1].x / SCALE_FACTOR),
-         Round(TRAJECTORY_Y_OFFSET - trajectory[i+1].y / SCALE_FACTOR));
+    Line(Round(mouseX + trajectory[i].x / SCALE_FACTOR),
+         Round(mouseY - trajectory[i].y / SCALE_FACTOR),
+         Round(mouseX + trajectory[i+1].x / SCALE_FACTOR),
+         Round(mouseY - trajectory[i+1].y / SCALE_FACTOR));
   end;
 
   { Draw starting point (launch point) }
-  SetColor(Green);
-  Circle(Round(TRAJECTORY_X_OFFSET + trajectory[0].x / SCALE_FACTOR),
-         Round(TRAJECTORY_Y_OFFSET - trajectory[0].y / SCALE_FACTOR), 5);
+  SetColor(Green);  { Green launch point (color 2) }
+  Circle(mouseX, mouseY, 5);
 
   { Draw ending point (impact point) }
-  SetColor(Blue);
-  Circle(Round(TRAJECTORY_X_OFFSET + trajectory[trajectoryPoints-1].x / SCALE_FACTOR),
-         Round(TRAJECTORY_Y_OFFSET - trajectory[trajectoryPoints-1].y / SCALE_FACTOR), 5);
+  SetColor(Yellow);  { Yellow impact point (color 14) }
+  Circle(Round(mouseX + trajectory[trajectoryPoints-1].x / SCALE_FACTOR),
+         Round(mouseY - trajectory[trajectoryPoints-1].y / SCALE_FACTOR), 5);
+end;
+
+procedure DrawAnimatedProjectile;
+var
+  angleRad: real;
+  vx, vy: real;
+  x, y: real;
+  currentVx, currentVy, totalV: real;
+  screenX, screenY: integer;
+  hitWall: boolean;
+  impactType: string;
+begin
+  if not isAnimating then exit;
+
+  { Calculate projectile position at current animation time }
+  angleRad := params.angle * Pi / 180;
+  vx := params.velocity * cos(angleRad);
+  vy := params.velocity * sin(angleRad);
+
+  { Physics equations: x = v0*t*cos(θ), y = v0*t*sin(θ) - 0.5*g*t² }
+  x := vx * animationTime;
+  y := vy * animationTime - 0.5 * GRAVITY * animationTime * animationTime;
+
+  { Calculate current velocity components }
+  currentVx := vx;  { Horizontal velocity stays constant }
+  currentVy := vy - GRAVITY * animationTime;  { Vertical velocity changes with gravity }
+  totalV := sqrt(currentVx * currentVx + currentVy * currentVy);  { Total velocity magnitude }
+
+  { Calculate screen coordinates }
+  screenX := Round(launchX + x / SCALE_FACTOR);
+  screenY := Round(launchY - y / SCALE_FACTOR);
+
+  { Check collision with grid boundaries (walls) - exact bounding box }
+  hitWall := false;
+  impactType := '';
+
+  { Check screen boundaries FIRST - these are the physical walls }
+  if screenX <= TRAJECTORY_X_OFFSET then
+  begin
+    hitWall := true;
+    impactType := 'LEFT WALL';
+  end
+  else if screenX >= (TRAJECTORY_X_OFFSET + TRAJECTORY_WIDTH) then
+  begin
+    hitWall := true;
+    impactType := 'RIGHT WALL';
+  end
+  else if screenY <= (TRAJECTORY_Y_OFFSET - TRAJECTORY_HEIGHT) then
+  begin
+    hitWall := true;
+    impactType := 'TOP WALL';
+  end
+  else if screenY >= TRAJECTORY_Y_OFFSET then
+  begin
+    hitWall := true;
+    impactType := 'GROUND (BOTTOM BOUNDARY)';
+  end;
+
+  { Only draw if projectile is still in flight }
+  if not hitWall then
+  begin
+    { Console logging - detailed flight information }
+    writeln('FLIGHT: t=', animationTime:0:3, 's  x=', x:0:2, 'm  y=', y:0:2, 'm  ',
+            'vx=', currentVx:0:2, 'm/s  vy=', currentVy:0:2, 'm/s  v=', totalV:0:2, 'm/s  ',
+            'screen=(', screenX, ',', screenY, ')');
+
+    { Draw the moving projectile - white dot as seen in screenshot }
+    SetColor(White);  { White projectile (color 15) }
+    Circle(screenX, screenY, 3);
+    
+    { Add bright center for visibility }
+    SetColor(Yellow);  { Yellow center (color 14) }
+    PutPixel(screenX, screenY, Yellow);
+  end
+  else
+  begin
+    { Projectile hit boundary - stop animation and mark impact point }
+    writeln('');
+    writeln('=== IMPACT: ', impactType, ' ===');
+    writeln('Total flight time: ', animationTime:0:3, ' s');
+    writeln('Final position: x=', x:0:2, 'm  y=', y:0:2, 'm');
+    writeln('Final screen pos: (', screenX, ',', screenY, ')');
+    writeln('Final velocity: ', totalV:0:2, ' m/s');
+    writeln('Grid boundaries: X[', TRAJECTORY_X_OFFSET, '-', TRAJECTORY_X_OFFSET + TRAJECTORY_WIDTH, 
+            '] Y[', TRAJECTORY_Y_OFFSET - TRAJECTORY_HEIGHT, '-', TRAJECTORY_Y_OFFSET, ']');
+    writeln('=======================================');
+    writeln('');
+    
+    { Add permanent impact mark at the collision point }
+    AddImpactMark(screenX, screenY);
+    
+    isAnimating := false;
+    animationTime := 0;
+  end;
 end;
 
 {============================================================
@@ -263,9 +405,62 @@ end;
   Input Handling - Interactive Physics Controls
 ============================================================}
 
-procedure HandleInput;
-var ch: char;
+procedure HandleMouseAndKeyboard;
+var localMouseX, localMouseY, mouseButtons: LongInt;
+    inputStatus: string;
+    ch: char;
+    oldAngle, oldVelocity: integer;
 begin
+  { Get mouse state }
+  GetMouseState(localMouseX, localMouseY, mouseButtons);
+
+  { Update global mouse coordinates }
+  mouseX := localMouseX;
+  mouseY := localMouseY;
+
+  { Store old parameters to detect changes }
+  oldAngle := params.angle;
+  oldVelocity := params.velocity;
+
+  { Update trajectory in real-time if parameters changed }
+  if (params.angle <> oldAngle) or (params.velocity <> oldVelocity) then
+  begin
+    CalculateTrajectory;
+  end;
+
+  { Check for left mouse button click to launch projectile }
+  if LPressed and not isAnimating then
+  begin
+    writeln('');
+    writeln('======================================');
+    writeln('=== LAUNCH! ===');
+    writeln('Launch position: (', localMouseX, ',', localMouseY, ')');
+    writeln('Angle: ', params.angle, '°');
+    writeln('Initial velocity: ', params.velocity, ' m/s');
+    writeln('======================================');
+    writeln('');
+    
+    inputStatus := 'WYRZUT! Kąt: ' + IntToStr(params.angle) + '°, Prędkość: ' + IntToStr(params.velocity) + ' m/s';
+
+    { Start animation from mouse position }
+    isAnimating := true;
+    animationTime := 0;
+    launchX := localMouseX;
+    launchY := localMouseY;
+
+    { Recalculate trajectory with current parameters }
+    CalculateTrajectory;
+  end
+  else if isAnimating then
+  begin
+    inputStatus := 'ANIMACJA! Czas: ' + FloatToStrF(animationTime, ffFixed, 4, 2) + ' s';
+  end
+  else
+  begin
+    inputStatus := 'Pozycja startu: (' + IntToStr(localMouseX) + ',' + IntToStr(localMouseY) + ') Kąt: ' + IntToStr(params.angle) + '°';
+  end;
+
+  { Handle keyboard input for fine adjustments }
   if KeyPressed then
   begin
     ch := ReadKey;
@@ -277,6 +472,7 @@ begin
         begin
           params.angle := params.angle + ANGLE_STEP;
           CalculateTrajectory;
+          inputStatus := 'Klawisz A: Zwiększanie kąta do ' + IntToStr(params.angle) + '°';
         end;
       end;
 
@@ -286,6 +482,7 @@ begin
         begin
           params.angle := params.angle - ANGLE_STEP;
           CalculateTrajectory;
+          inputStatus := 'Klawisz Z: Zmniejszanie kąta do ' + IntToStr(params.angle) + '°';
         end;
       end;
 
@@ -295,6 +492,7 @@ begin
         begin
           params.velocity := params.velocity - VELOCITY_STEP;
           CalculateTrajectory;
+          inputStatus := 'Klawisz S: Zmniejszanie prędkości do ' + IntToStr(params.velocity) + ' m/s';
         end;
       end;
 
@@ -304,19 +502,31 @@ begin
         begin
           params.velocity := params.velocity + VELOCITY_STEP;
           CalculateTrajectory;
+          inputStatus := 'Klawisz D: Zwiększanie prędkości do ' + IntToStr(params.velocity) + ' m/s';
         end;
       end;
 
       #27: { ESC - Exit }
       begin
+        HideMouse;
         writeln;
         writeln('Dziękuję za użycie symulacji Strzałki!');
         writeln('Nacisnij Enter aby zakończyć...');
         readln;
+        CloseGraph;
         halt(0);
       end;
     end;
   end;
+
+  { Update status display }
+  SetColor(TEXT_COLOR);
+  OutTextXY(50, 150, inputStatus);
+
+  { Display mouse position and calculated parameters }
+  SetColor(LightGray);
+  OutTextXY(50, 165, 'Mysz: X=' + IntToStr(localMouseX) + ' Y=' + IntToStr(localMouseY));
+  OutTextXY(50, 180, 'Kąt: ' + IntToStr(params.angle) + '° Prędkość: ' + IntToStr(params.velocity) + ' m/s');
 end;
 
 {============================================================
@@ -324,11 +534,25 @@ end;
 ============================================================}
 
 procedure InitializePhysics;
+var i: integer;
 begin
   { Initial parameters - matching typical physics simulation starting values }
   params.angle := 45;      { 45 degrees - optimal angle for maximum range }
   params.velocity := 30;   { 30 m/s - good starting velocity for visible trajectory }
   CalculateTrajectory;
+  
+  { Initialize animation state }
+  isAnimating := false;
+  animationTime := 0;
+  launchX := 0;
+  launchY := 0;
+  
+  { Initialize impact marks array }
+  impactMarkCount := 0;
+  for i := 0 to 99 do
+  begin
+    impactMarks[i].active := false;
+  end;
 end;
 
 begin
@@ -338,7 +562,7 @@ begin
   { Initialize physics simulation }
   InitializePhysics;
 
-  { Main simulation loop - matching original visual interface }
+  { Main simulation loop - real-time mouse and keyboard interaction }
   while True do
   begin
     { Clear main area (preserve status bar) }
@@ -348,20 +572,29 @@ begin
     { Draw status bar - persistent like in original screenshots }
     DrawStatusBar;
 
-    { Draw coordinate grid }
-    DrawCoordinateGrid;
+    { Handle mouse and keyboard input - real-time interaction }
+    HandleMouseAndKeyboard;
 
-    { Draw trajectory visualization }
-    DrawTrajectory;
+    { Update animation time if animating }
+    if isAnimating then
+    begin
+      animationTime := animationTime + 0.016;  { 16ms time step for smooth animation }
+    end;
 
-    { Display parameters and controls in main area }
-    DisplayParameters;
+    { Draw trajectory visualization - updated in real-time based on mouse position }
+    DrawTrajectory(mouseX, mouseY);
 
-    { Handle user input }
-    HandleInput;
+    { Draw animated projectile if in flight }
+    DrawAnimatedProjectile;
 
-    { Small delay for smooth updates }
-    Delay(100);
+    { Draw all impact marks - persistent white dots }
+    DrawImpactMarks;
+
+    { Draw bottom status bar with parameters }
+    DrawBottomBar;
+
+    { Small delay for smooth updates - 60 FPS equivalent }
+    Delay(16);
   end;
 
   { Clean exit }

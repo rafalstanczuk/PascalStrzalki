@@ -23,7 +23,41 @@ The modern version strives for functional and visual fidelity to the 2003 origin
 
 The program features a **clean, minimalist interface** designed for educational physics simulation:
 
-#### **Visual Layout** (see `strzalki_000.png`, `strzalki_001.png`)
+#### **Original Program Screenshots**
+
+![Strzalki - Clean Interface](strzalki_000.png)
+*Screenshot 1: Clean blue interface with brown status bar at top showing author info and controls. The minimalist design provides an unobstructed view of the simulation area.*
+
+![Strzalki - Impact Marks](strzalki_001.png)
+*Screenshot 2: Multiple white impact marks visible on the blue background, showing the persistent history of projectile landings. Each white dot represents where a launched projectile hit the boundary.*
+
+#### **Screenshot Analysis**
+
+These authentic screenshots from the original 2003 DOS program reveal:
+
+1. **Minimalist Design Philosophy**
+   - No cluttered interface elements
+   - Clean blue background (#0000AA) provides excellent contrast
+   - Focus on the simulation rather than UI chrome
+
+2. **Persistent Impact Visualization**
+   - White dots remain visible after each projectile impact
+   - Allows users to see patterns and experiment with different angles/velocities
+   - Educational value: visualize how parameter changes affect trajectory
+
+3. **Status Bar Design**
+   - Brown/orange bar at top (#AA5500 in VGA palette)
+   - Left side: Author attribution
+   - Right side: Control instructions in Polish
+   - Compact, non-intrusive information display
+
+4. **Professional Aesthetics**
+   - Authentic DOS VGA 16-color palette
+   - Clean typography with system font
+   - Efficient use of screen real estate (640×480)
+   - No unnecessary visual elements
+
+#### **Visual Layout** (see screenshots above)
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
